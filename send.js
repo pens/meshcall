@@ -69,6 +69,7 @@ async function run() {
     cam.srcObject = await navigator.mediaDevices.getUserMedia({ video: true });
     
     await faceapi.nets.ssdMobilenetv1.loadFromUri('face-api.js-master/weights/');
+    await faceapi.nets.faceLandmark68Net.loadFromUri('face-api.js-master/weights/');
 
     cam.onplaying = onPlaying;
 }
@@ -77,15 +78,18 @@ async function onPlaying() {
     requestAnimationFrame(onPlaying);
 
     if (Date.now() - prev > 1 / 6) {
-        const result = await faceapi.detectSingleFace(cam);
+        const result = await faceapi.detectSingleFace(cam).withFaceLandmarks();
         
         if (result) {
-            const canvas = document.getElementById('overlay')
-            const dims = faceapi.matchDimensions(canvas, cam, true)
-            faceapi.draw.drawDetections(canvas, faceapi.resizeResults(result, dims))
+            const canvas = document.getElementById('overlay');
+            const dims = faceapi.matchDimensions(canvas, cam, true);
+            const resizedResults = faceapi.resizeResults(result, dims);
+            faceapi.draw.drawDetections(canvas, resizedResults);
+            faceapi.draw.drawFaceLandmarks(canvas, resizedResults);
 
-            const x = result.box.x + result.box.width / 2;
-            const y = result.box.y + result.box.height / 2;
+            const aligned = result.alignedRect.box;
+            const x = aligned.x + aligned.width / 2;
+            const y = aligned.y + aligned.height / 2;
             const ox = 320;
             const oy = 360;
 
