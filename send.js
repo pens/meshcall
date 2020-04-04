@@ -1,9 +1,9 @@
 'use strict';
 
 /*
-    simple-peer / WebRTC
+    simple-peer / WebRTC    
 */
-
+    
 const p = new SimplePeer({
     initiator: true,
     trickle: false
@@ -11,22 +11,46 @@ const p = new SimplePeer({
 
 let established = false;
 
-p.on('signal', data => {
-    console.log('SIGNAL', JSON.stringify(data));
-    document.getElementById('offer').textContent = JSON.stringify(data);
+p.on('signal', offer => {
+    console.log('SIGNAL', JSON.stringify(offer));
+    sendOffer(offer);
 });
 
-document.querySelector('form').addEventListener('submit', ev => {
-    ev.preventDefault();
-    p.signal(JSON.parse(document.getElementById('answer').value));
-});
+let timeoutId;
+
+/*
+    1. Send offer
+*/
+function sendOffer(offer) {
+    fetch('http://localhost:5000/so', {
+        method: 'POST',
+        body: JSON.stringify(offer)
+    }).then(response => {
+        pollAnswer();
+        response.text().then(text => console.log(text));
+    });
+}
+
+/*
+    4. Keep polling until answer received
+*/
+function pollAnswer() {
+    fetch('http://localhost:5000/ga', {
+        method: 'POST'
+    }).then(response => {
+        if (response.status == 200) {
+            response.json().then(answer => {
+                console.log(answer);
+                p.signal(answer);
+            });
+        } else {
+            window.setTimeout(pollAnswer, 1000);
+        }
+    });
+}
 
 p.on('connect', () => {
     console.log('CONNECT');
-    document.getElementById('send').disabled = false;
-    document.getElementById('sendButton').disabled = false;
-
-    document.getElementById('sendButton').onclick = send;
     established = true;
 });
 

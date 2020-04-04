@@ -9,16 +9,41 @@ const p = new SimplePeer({
 	trickle: false
 });
 
-//p.on('error', err => console.log('error', err));
+pollOffer();
 
-p.on('signal', data => {
-	console.log('SIGNAL', JSON.stringify(data));
-	document.getElementById('answer').textContent = JSON.stringify(data);
-});
+/*
+	2. Keep polling until offer received
+*/
+function pollOffer() {
+    fetch('http://localhost:5000/go', {
+        method: 'POST'
+    }).then(response => {
+        if (response.status == 200) {
+            response.json().then(offer => {
+                console.log(offer);
+                p.signal(offer);
+            });
+        } else {
+            window.setTimeout(pollOffer, 1000);
+        }
+    });
+}
 
-document.querySelector('form').addEventListener('submit', ev => {
-	ev.preventDefault();
-	p.signal(JSON.parse(document.getElementById('offer').value));
+/*
+	3. Send answer
+*/
+function sendAnswer(answer) {
+    fetch('http://localhost:5000/sa', {
+        method: 'POST',
+        body: JSON.stringify(answer)
+    }).then(response => {
+        console.log(response.text());
+    });
+}
+
+p.on('signal', answer => {
+	console.log('SIGNAL', JSON.stringify(answer));
+	sendAnswer(answer);
 });
 
 p.on('connect', () => {
@@ -27,7 +52,6 @@ p.on('connect', () => {
 
 p.on('data', data => {
   console.log('data: ' + data);
-  document.getElementById('recv').value = data;
   rotate(data);
 });
 

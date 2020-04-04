@@ -1,0 +1,14 @@
+# MVP
+- Background image of room
+    - Load into three.js
+- Create rigged 3d head
+    - How to make model
+    - Get my skin as material
+    - Rig and animate
+    - Export as gltf
+    - Control animations in three.js
+- Detect head rotation / translation
+- Design format for data transfer (JSON?)
+- Head feature detection (mouth open close)
+    - Join mouth detection -> mouth animation
+- Add audio channel
