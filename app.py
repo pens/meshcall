@@ -1,4 +1,7 @@
-from flask import Flask, request
+#
+# Copyright (c) 2021 Seth Pendergrass. See LICENSE.
+#
+from flask import Flask, request, send_file
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -34,3 +37,7 @@ def recv_answer():
     if answer is not None:
         return answer
     return 'No answer available', 202
+
+@app.route('/<path:filename>')
+def get_file(filename):
+    return send_file(filename)
